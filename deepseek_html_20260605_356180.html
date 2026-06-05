@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>TABACH777 — магазин подов, жиж и снюсов</title>
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a1a;
+      font-family: 'SF Pro Display', 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 16px;
+      margin: 0;
+    }
+
+    /* Главный контейнер — имитация экрана смартфона */
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      background: #1a1a1a;
+      border-radius: 32px;
+      padding: 20px 16px 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      min-height: 90vh;
+      color: #fff;
+    }
+
+    /* Заголовок и корзина */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2a2a2a;
+      padding: 12px 18px;
+      border-radius: 20px;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #d4a843, #f5d77b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .cart-icon-wrapper {
+      position: relative;
+      background: #1a1a1a;
+      border-radius: 50%;
+      width: 46px;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      border: 1.5px solid #d4a843;
+      transition: 0.2s;
+    }
+
+    .cart-icon-wrapper:active {
+      background: #2a2a2a;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #d4a843;
+      color: #1a1a1a;
+      font-weight: bold;
+      font-size: 14px;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #1a1a1a;
+    }
+
+    /* Экраны */
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Кнопки */
+    .gold-btn {
+      background: linear-gradient(145deg, #d4a843, #b68b2e);
+      border: none;
+      color: #1a1a1a;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      cursor: pointer;
+      text-align: center;
+      width: 100%;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 0 #7a5c1e;
+      border: 1px solid #e6bc5c;
+    }
+
+    .gold-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #7a5c1e;
+    }
+
+    .gold-btn:disabled {
+      background: #4a4a4a;
+      box-shadow: 0 4px 0 #2a2a2a;
+      border-color: #555;
+      color: #999;
+      transform: none;
+      pointer-events: none;
+    }
+
+    .outline-btn {
+      background: transparent;
+      border: 2px solid #d4a843;
+      color: #d4a843;
+      font-weight: 600;
+      font-size: 18px;
+      padding: 16px 22px;
+      border-radius: 18px;
+      cursor: pointer;
+      width: 100%;
+      transition: 0.2s;
+    }
+
+    .outline-btn:active {
+      background: #2a2a2a;
+    }
+
+    .category-btn {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #fff;
+      font-size: 22px;
+      padding: 24px 16px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: 600;
+    }
+
+    .category-btn:active {
+      background: #3a3a3a;
+      border-color: #d4a843;
+    }
+
+    /* Карточки */
+    .card {
+      background: #2a2a2a;
+      border-radius: 24px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid #3a3a3a;
+    }
+
+    .photo-placeholder {
+      background: #4a4a4a;
+      width: 100%;
+      height: 160px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 16px;
+      border: 2px dashed #666;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .price {
+      font-size: 24px;
+      font-weight: 700;
+      color: #d4a843;
+    }
+
+    select, input, textarea {
+      background: #1a1a1a;
+      border: 2px solid #3a3a3a;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      color: #fff;
+      width: 100%;
+      outline: none;
+      transition: 0.2s;
+      font-family: inherit;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: #d4a843;
+    }
+
+    .radio-group, .color-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .radio-option {
+      background: #1a1a1a;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 2px solid #3a3a3a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      flex: 1;
+      justify-content: center;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+
+    .radio-option.selected {
+      border-color: #d4a843;
+      background: #2a2a2a;
+      box-shadow: 0 0 8px rgba(212, 168, 67, 0.3);
+    }
+
+    .check-icon {
+      color: #d4a843;
+      font-weight: bold;
+    }
+
+    .summary-block {
+      background: #222;
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid #d4a843;
+    }
+
+    .disabled-overlay {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .manager-link {
+      color: #d4a843;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-block;
+      background: #2a2a2a;
+      padding: 12px 20px;
+      border-radius: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .small-text {
+      font-size: 14px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <!-- Шапка с корзиной -->
+  <div class="header">
+    <span class="logo">TABACH777</span>
+    <div class="cart-icon-wrapper" id="cartIcon">
+      <span>🛒</span>
+      <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+    </div>
+  </div>
+
+  <!-- Экран проверки подписки -->
+  <div id="subscribeScreen" class="screen active">
+    <div style="text-align: center; display: flex; flex-direction: column; gap: 24px; margin-top: 20px;">
+      <h2 style="color: #d4a843;">🔒 Доступ к магазину</h2>
+      <p style="font-size: 18px; line-height: 1.5;">Для доступа подпишись на канал<br><a href="https://t.me/tabach777" target="_blank" style="color: #d4a843; font-weight: bold;">t.me/tabach777</a></p>
+      <button class="gold-btn" id="checkSubscriptionBtn">✅ Проверить подписку</button>
+      <p class="small-text" id="subscriptionError" style="color: #e57373; display: none;">Вы не подписаны. Подпишитесь и попробуйте снова.</p>
+    </div>
+  </div>
+
+  <!-- Главный экран категорий -->
+  <div id="categoriesScreen" class="screen">
+    <button class="category-btn" data-category="pods">🚬 Поды</button>
+    <button class="category-btn" data-category="juice">💨 Жижа</button>
+    <button class="category-btn" data-category="snus">🧊 Снюсы</button>
+  </div>
+
+  <!-- Экран списка подов (пример для категории Поды) -->
+  <div id="podsListScreen" class="screen">
+    <div class="card">
+      <div class="photo-placeholder">Фото товара</div>
+      <div class="row">
+        <span style="font-weight: bold; font-size: 20px;">Aegis Hero 5</span>
+        <span class="price">2300₽</span>
+      </div>
+      <button class="gold-btn" data-product="aegis">Смотреть</button>
+    </div>
+    <div class="card">
+      <div class="photo-placeholder">Фото товара</div>
+      <div class="row">
+        <span style="font-weight: bold; font-size: 20px;">Hros 5 Mini</span>
+        <span class="price">1900₽</span>
+      </div>
+      <button class="gold-btn" data-product="hros">Смотреть</button>
+    </div>
+    <button class="outline-btn" id="backToCategoriesFromPods">🔙 Назад в меню</button>
+  </div>
+
+  <!-- Экран карточки товара (динамический) -->
+  <div id="productDetailScreen" class="screen">
+    <div id="productDetailContent"></div>
+  </div>
+
+  <!-- Экран оформления заказа -->
+  <div id="orderScreen" class="screen">
+    <h2 style="color: #d4a843;">Оформление заказа</h2>
+    <div id="orderFormContent"></div>
+  </div>
+
+  <!-- Экран подтверждения заказа -->
+  <div id="confirmationScreen" class="screen">
+    <div id="confirmationContent" style="display: flex; flex-direction: column; gap: 20px;"></div>
+  </div>
+
+  <!-- Модальное окно корзины -->
+  <div id="cartModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000;">
+    <div style="background: #1a1a1a; width: 90%; max-width: 400px; border-radius: 28px; padding: 20px; border: 2px solid #d4a843;">
+      <h3 style="color: #d4a843; margin-bottom: 16px;">🛒 Корзина</h3>
+      <div id="cartItemsList" style="margin-bottom: 16px;"></div>
+      <div style="font-weight: bold; font-size: 18px; margin-bottom: 20px;">💰 Итого: <span id="cartTotal">0₽</span></div>
+      <button class="gold-btn" id="closeCartBtn">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.MainButton.hide();
+    }
+
+    // Состояние приложения
+    const state = {
+      subscriptionChecked: false,
+      cart: [], // { productId, name, color, price }
+      currentProduct: null,
+      currentCategory: null,
+      orderDetails: {
+        deliveryMethod: null, // 'pickup' или 'courier'
+        pickupPoint: '',
+        address: '',
+        date: '',
+        time: '',
+        comment: ''
+      }
+    };
+
+    // Элементы экранов
+    const screens = {
+      subscribe: document.getElementById('subscribeScreen'),
+      categories: document.getElementById('categoriesScreen'),
+      podsList: document.getElementById('podsListScreen'),
+      productDetail: document.getElementById('productDetailScreen'),
+      order: document.getElementById('orderScreen'),
+      confirmation: document.getElementById('confirmationScreen')
+    };
+
+    const cartBadge = document.getElementById('cartBadge');
+    const cartIcon = document.getElementById('cartIcon');
+    const cartModal = document.getElementById('cartModal');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+
+    // Товары
+    const products = {
+      aegis: { id: 'aegis', name: 'Aegis Hero 5', price: 2300, description: 'Компактный и мощный под. Отличная автономия и вкусопередача.', colors: ['Белый', 'Синий', 'Чёрный'] },
+      hros: { id: 'hros', name: 'Hros 5 Mini', price: 1900, description: 'Миниатюрный под с хорошей производительностью.', colors: ['Белый', 'Синий', 'Чёрный'] }
+    };
+
+    // Переключение экранов
+    function showScreen(screenId) {
+      Object.values(screens).forEach(s => s.classList.remove('active'));
+      if (screens[screenId]) screens[screenId].classList.add('active');
+    }
+
+    // Обновление счетчика корзины
+    function updateCartBadge() {
+      const count = state.cart.length;
+      if (count > 0) {
+        cartBadge.style.display = 'flex';
+        cartBadge.textContent = count;
+      } else {
+        cartBadge.style.display = 'none';
+      }
+    }
+
+    // Добавление в корзину
+    function addToCart(product, color) {
+      state.cart.push({
+        productId: product.id,
+        name: product.name,
+        color: color,
+        price: product.price
+      });
+      updateCartBadge();
+    }
+
+    // Очистить корзину
+    function clearCart() {
+      state.cart = [];
+      updateCartBadge();
+    }
+
+    // Подсчет суммы корзины
+    function getCartTotal() {
+      return state.cart.reduce((sum, item) => sum + item.price, 0);
+    }
+
+    // Показать модалку корзины
+    function renderCartModal() {
+      const listDiv = document.getElementById('cartItemsList');
+      const totalSpan = document.getElementById('cartTotal');
+      if (state.cart.length === 0) {
+        listDiv.innerHTML = '<p style="color:#aaa;">Корзина пуста</p>';
+        totalSpan.textContent = '0₽';
+      } else {
+        listDiv.innerHTML = state.cart.map((item, idx) => 
+          `<div style="display:flex; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:4px;">
+            <span>${item.name} (${item.color})</span>
+            <span>${item.price}₽</span>
+          </div>`
+        ).join('');
+        totalSpan.textContent = getCartTotal() + '₽';
+      }
+      cartModal.style.display = 'flex';
+    }
+
+    // Закрыть модалку корзины
+    closeCartBtn.addEventListener('click', () => {
+      cartModal.style.display = 'none';
+    });
+    cartModal.addEventListener('click', (e) => {
+      if (e.target === cartModal) cartModal.style.display = 'none';
+    });
+    cartIcon.addEventListener('click', renderCartModal);
+
+    // Проверка подписки (эмуляция через localStorage / CloudStorage)
+    document.getElementById('checkSubscriptionBtn').addEventListener('click', async () => {
+      // В реальном Mini App используем tg.CloudStorage или проверку через бота.
+      // Здесь для демо: всегда считаем подписанным после нажатия (можно имитировать ошибку)
+      try {
+        if (tg && tg.CloudStorage) {
+          await tg.CloudStorage.setItem('subscribed', 'true');
+        }
+        localStorage.setItem('tabach_subscribed', 'true');
+        state.subscriptionChecked = true;
+        document.getElementById('subscriptionError').style.display = 'none';
+        showScreen('categories');
+      } catch (e) {
+        document.getElementById('subscriptionError').style.display = 'block';
+      }
+    });
+
+    // При загрузке проверим, был ли уже доступ
+    window.addEventListener('load', () => {
+      const stored = localStorage.getItem('tabach_subscribed');
+      if (stored === 'true') {
+        state.subscriptionChecked = true;
+        showScreen('categories');
+      } else {
+        showScreen('subscribe');
+      }
+      updateCartBadge();
+    });
+
+    // Категории (главный экран)
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const category = e.currentTarget.dataset.category;
+        state.currentCategory = category;
+        if (category === 'pods') {
+          showScreen('podsList');
+        } else {
+          // Заглушка для других категорий
+          alert('Раздел "' + e.currentTarget.textContent.trim() + '" в разработке');
+        }
+      });
+    });
+
+    // Назад из списка подов в меню
+    document.getElementById('backToCategoriesFromPods').addEventListener('click', () => {
+      showScreen('categories');
+    });
+
+    // Открытие карточки товара из списка
+    document.querySelectorAll('[data-product]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const productId = e.currentTarget.dataset.product;
+        const product = products[productId];
+        if (!product) return;
+        state.currentProduct = product;
+        renderProductDetail(product);
+        showScreen('productDetail');
+      });
+    });
+
+    // Рендер карточки товара
+    function renderProductDetail(product) {
+      const container = document.getElementById('productDetailContent');
+      container.innerHTML = `
+        <div class="card">
+          <div class="photo-placeholder">Фото товара</div>
+          <h2 style="color:#fff;">${product.name}</h2>
+          <p style="color:#ccc;">${product.description}</p>
+          <div style="font-weight:bold; margin-top:8px;">Выберите цвет:</div>
+          <div class="color-group" id="colorSelector">
+            ${product.colors.map(color => `<div class="radio-option color-option" data-color="${color}">${color}</div>`).join('')}
+          </div>
+          <div class="price">${product.price}₽</div>
+          <button class="gold-btn" id="addToOrderBtn" disabled>🛒 Оформить заказ</button>
+          <button class="outline-btn" id="backToPodsBtn">🔙 Назад к подам</button>
+        </div>
+      `;
+
+      let selectedColor = null;
+      const colorOptions = document.querySelectorAll('.color-option');
+      const addBtn = document.getElementById('addToOrderBtn');
+
+      colorOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+          colorOptions.forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          selectedColor = opt.dataset.color;
+          addBtn.disabled = false;
+        });
+      });
+
+      document.getElementById('backToPodsBtn').addEventListener('click', () => {
+        showScreen('podsList');
+      });
+
+      addBtn.addEventListener('click', () => {
+        if (!selectedColor) return;
+        // Сохраняем выбранный товар и цвет в заказе
+        state.currentProduct = { ...product, selectedColor };
+        renderOrderForm();
+        showScreen('order');
+      });
+    }
+
+    // Рендер формы заказа
+    function renderOrderForm() {
+      const formDiv = document.getElementById('orderFormContent');
+      formDiv.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div><strong>Способ получения:</strong></div>
+          <div class="radio-group" id="deliveryMethodGroup">
+            <div class="radio-option delivery-option" data-method="pickup">🏢 Самовывоз (бесплатно)</div>
+            <div class="radio-option delivery-option" data-method="courier">🚗 По Москве курьером (+300₽)</div>
+          </div>
+          <div id="dynamicDeliveryFields" style="display:flex; flex-direction:column; gap:12px;"></div>
+          <div><strong>Дата получения:</strong></div>
+          <input type="date" id="orderDate" min="${getTomorrowDate()}">
+          <div><strong>Время получения:</strong></div>
+          <select id="orderTime">
+            <option value="">-- выберите время --</option>
+            ${generateTimeSlots()}
+          </select>
+          <div><strong>Комментарий (необязательно):</strong></div>
+          <textarea id="orderComment" placeholder="Ваш комментарий..."></textarea>
+          <button class="gold-btn" id="confirmOrderBtn" disabled>✅ Подтвердить заказ</button>
+          <button class="outline-btn" id="cancelOrderBtn">❌ Отменить заказ</button>
+        </div>
+      `;
+
+      const deliveryOptions = document.querySelectorAll('.delivery-option');
+      const dynamicFields = document.getElementById('dynamicDeliveryFields');
+      const confirmBtn = document.getElementById('confirmOrderBtn');
+      
+      let currentDeliveryMethod = null;
+      state.orderDetails = { deliveryMethod: null, pickupPoint: '', address: '', date: '', time: '', comment: '' };
+
+      function updateDynamicFields() {
+        if (currentDeliveryMethod === 'pickup') {
+          dynamicFields.innerHTML = `
+            <div><strong>Пункт самовывоза:</strong></div>
+            <select id="pickupPointSelect">
+              <option value="">-- выбери пункт --</option>
+              <option value="ВДНХ">ВДНХ</option>
+              <option value="Выхино">Выхино</option>
+            </select>
+          `;
+          document.getElementById('pickupPointSelect')?.addEventListener('change', (e) => {
+            state.orderDetails.pickupPoint = e.target.value;
+            validateOrderForm();
+          });
+        } else if (currentDeliveryMethod === 'courier') {
+          dynamicFields.innerHTML = `
+            <div><strong>Адрес доставки:</strong></div>
+            <input type="text" id="addressInput" placeholder="Введите адрес">
+          `;
+          document.getElementById('addressInput')?.addEventListener('input', (e) => {
+            state.orderDetails.address = e.target.value;
+            validateOrderForm();
+          });
+        } else {
+          dynamicFields.innerHTML = '';
+        }
+      }
+
+      deliveryOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+          deliveryOptions.forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          currentDeliveryMethod = opt.dataset.method;
+          state.orderDetails.deliveryMethod = currentDeliveryMethod;
+          state.orderDetails.pickupPoint = '';
+          state.orderDetails.address = '';
+          updateDynamicFields();
+          validateOrderForm();
+        });
+      });
+
+      document.getElementById('orderDate').addEventListener('change', (e) => {
+        state.orderDetails.date = e.target.value;
+        validateOrderForm();
+      });
+      document.getElementById('orderTime').addEventListener('change', (e) => {
+        state.orderDetails.time = e.target.value;
+        validateOrderForm();
+      });
+      document.getElementById('orderComment').addEventListener('input', (e) => {
+        state.orderDetails.comment = e.target.value;
+      });
+
+      function validateOrderForm() {
+        const { deliveryMethod, pickupPoint, address, date, time } = state.orderDetails;
+        let valid = !!deliveryMethod && !!date && !!time;
+        if (deliveryMethod === 'pickup') valid = valid && !!pickupPoint;
+        if (deliveryMethod === 'courier') valid = valid && !!address;
+        confirmBtn.disabled = !valid;
+      }
+
+      document.getElementById('cancelOrderBtn').addEventListener('click', () => {
+        state.orderDetails = {};
+        showScreen('podsList');
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        if (confirmBtn.disabled) return;
+        // Добавить в корзину и показать подтверждение
+        if (state.currentProduct) {
+          addToCart(state.currentProduct, state.currentProduct.selectedColor);
+        }
+        renderConfirmation();
+      });
+    }
+
+    function getTomorrowDate() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split('T')[0];
+    }
+
+    function generateTimeSlots() {
+      let slots = '';
+      for (let h = 9; h <= 21; h++) {
+        for (let m = 0; m < 60; m += 30) {
+          if (h === 21 && m > 0) continue;
+          const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+          slots += `<option value="${time}">${time}</option>`;
+        }
+      }
+      return slots;
+    }
+
+    function renderConfirmation() {
+      const product = state.currentProduct;
+      const details = state.orderDetails;
+      const deliveryCost = details.deliveryMethod === 'courier' ? 300 : 0;
+      const subtotal = product.price;
+      const total = subtotal + deliveryCost;
+      const orderNumber = '#TAB-' + Math.floor(1000 + Math.random() * 9000);
+
+      const confDiv = document.getElementById('confirmationContent');
+      confDiv.innerHTML = `
+        <h2 style="color:#d4a843;">✅ Заказ подтверждён</h2>
+        <div class="summary-block">
+          <p><strong>Номер заказа:</strong> ${orderNumber}</p>
+          <p><strong>Товар:</strong> ${product.name}</p>
+          <p><strong>Цвет:</strong> ${product.selectedColor}</p>
+          <p><strong>Способ:</strong> ${details.deliveryMethod === 'pickup' ? 'Самовывоз' : 'Курьером'}</p>
+          ${details.deliveryMethod === 'pickup' ? `<p><strong>Пункт:</strong> ${details.pickupPoint}</p>` : `<p><strong>Адрес:</strong> ${details.address}</p>`}
+          <p><strong>Дата:</strong> ${details.date}</p>
+          <p><strong>Время:</strong> ${details.time}</p>
+          ${details.comment ? `<p><strong>Комментарий:</strong> ${details.comment}</p>` : ''}
+          <p style="font-size:20px; margin-top:10px;"><strong>💰 Итого: ${total}₽</strong></p>
+        </div>
+        <p style="color:#d4a843;">Напиши менеджеру и назови номер заказа</p>
+        <a href="https://t.me/tabachka_777" target="_blank" class="manager-link" style="text-align:center; display:block;">💬 Написать менеджеру</a>
+        <button class="gold-btn" id="backToCatalogFromConfirm">🏠 В каталог</button>
+      `;
+
+      document.getElementById('backToCatalogFromConfirm').addEventListener('click', () => {
+        state.orderDetails = {};
+        state.currentProduct = null;
+        showScreen('categories');
+      });
+
+      showScreen('confirmation');
+    }
+  })();
+</script>
+</body>
+</html>
